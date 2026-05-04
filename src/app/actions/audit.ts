@@ -10,11 +10,12 @@ export async function startAudit(accountId: string, datePreset?: string | null, 
     const settingsRepo = new SettingsRepository();
     const settings = await settingsRepo.getSettings();
 
-    if (!settings.metaAccessToken) {
+    const token = process.env.META_ACCESS_TOKEN || settings.metaAccessToken;
+    if (!token) {
       return { success: false, error: 'Token do Meta Ads não configurado.' };
     }
 
-    const metaService = new MetaIntegrationService(settings.metaAccessToken);
+    const metaService = new MetaIntegrationService(token);
     const ruleService = new RuleEngineService();
 
     const tree = await metaService.getAuditTree(
@@ -46,11 +47,12 @@ export async function getAccounts() {
     const settingsRepo = new SettingsRepository();
     const settings = await settingsRepo.getSettings();
 
-    if (!settings.metaAccessToken) {
+    const token = process.env.META_ACCESS_TOKEN || settings.metaAccessToken;
+    if (!token) {
       return { success: false, error: 'Token do Meta Ads não configurado.' };
     }
 
-    const metaService = new MetaIntegrationService(settings.metaAccessToken);
+    const metaService = new MetaIntegrationService(token);
     const accounts = await metaService.getAdAccounts();
 
     return { success: true, data: accounts };
@@ -64,6 +66,12 @@ export async function getSettingsAction() {
   try {
     const settingsRepo = new SettingsRepository();
     const settings = await settingsRepo.getSettings();
+    
+    // Se houver token na env, sobrepõe para o frontend saber que pode carregar
+    if (process.env.META_ACCESS_TOKEN) {
+      settings.metaAccessToken = process.env.META_ACCESS_TOKEN;
+    }
+    
     return { success: true, data: settings };
   } catch (error: any) {
     return { success: false, error: error.message };
