@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TS · Meta Ads Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0e0d0c;
+      --surface: #161513;
+      --surface2: #1c1a18;
+      --border: rgba(245, 158, 11, 0.15);
+      --border2: rgba(255, 255, 255, 0.06);
+      --amber: #f59e0b;
+      --amber-dim: #a78a4a;
+      --amber-bg: rgba(245, 158, 11, 0.08);
+      --text: #e8e2d8;
+      --muted: #6b6560;
+      --danger: #f87171;
+      --warn: #fbbf24;
+      --success: #86efac;
+      --ok: #94a3b8;
+      --info: #6b6560;
+    }
+
+    html,
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      min-height: 100vh;
+      font-size: 14px;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(245, 158, 11, 0.2);
+      border-radius: 3px;
+    }
+
+    /* ─── layout ─── */
+    #header {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 100;
+    }
+
+    #header .label {
+      font-size: 10px;
+      color: var(--amber-dim);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    #header h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    #header .period {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    #app {
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ─── buttons ─── */
+    .btn-primary {
+      background: var(--amber);
+      color: #0e0d0c;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: .05em;
+      transition: opacity .15s;
+    }
+
+    .btn-primary:disabled {
+      opacity: .4;
+      cursor: default;
+    }
+
+    .btn-primary:not(:disabled):hover {
+      opacity: .85;
+    }
+
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      transition: color .15s, border-color .15s;
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: rgba(245, 158, 11, .3);
+    }
+
+    .btn-outline {
+      background: var(--amber-bg);
+      border: 1px solid var(--amber);
+      color: var(--amber);
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: .05em;
+      transition: opacity .15s;
+    }
+
+    .btn-outline:disabled {
+      opacity: .4;
+      cursor: default;
+    }
+
+    .btn-outline:not(:disabled):hover {
+      opacity: .85;
+    }
+
+    .btn-sm {
+      background: transparent;
+      border: 1px solid rgba(245, 158, 11, .3);
+      color: var(--amber-dim);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'IBM Plex Mono', monospace;
+      transition: border-color .15s;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--amber);
+    }
+
+    /* ─── warning / error ─── */
+    .alert-warn {
+      background: rgba(248, 113, 113, .08);
+      border: 1px solid rgba(248, 113, 113, .25);
+      border-radius: 8px;
+      padding: 10px 16px;
+      color: #fca5a5;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    .alert-err {
+      background: rgba(248, 113, 113, .1);
+      border: 1px solid rgba(248, 113, 113, .3);
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 16px;
+    }
+
+    /* ─── step: load accounts ─── */
+    #step-load {
+      text-align: center;
+      padding-top: 64px;
+    }
+
+    #step-load p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 28px;
+    }
+
+    /* ─── account cards ─── */
+    #account-list {
+      margin-bottom: 24px;
+    }
+
+    #account-list .label {
+      font-size: 11px;
+      color: var(--amber-dim);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    .account-card {
+      background: rgba(255, 255, 255, .02);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: border-color .15s, background .15s;
+    }
+
+    .account-card:hover {
+      border-color: rgba(245, 158, 11, .3);
+      background: rgba(245, 158, 11, .04);
+    }
+
+    .account-card.selected {
+      border-color: var(--amber);
+      background: rgba(245, 158, 11, .1);
+    }
+
+    .account-card .name {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .account-card .meta {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    #step-audit {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    #step-audit .acct-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    #step-audit .acct-label strong {
+      color: var(--amber);
+    }
+
+    /* ─── KPI bar ─── */
+    #kpi-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .kpi {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 8px 14px;
+      min-width: 90px;
+    }
+
+    .kpi.hl {
+      background: rgba(245, 158, 11, .1);
+      border-color: rgba(245, 158, 11, .3);
+    }
+
+    .kpi .kpi-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+
+    .kpi .kpi-val {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .kpi.hl .kpi-val {
+      color: var(--amber);
+    }
+
+    /* ─── tabs ─── */
+    #tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      padding: 8px 16px;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: color .15s;
+    }
+
+    .tab.active {
+      color: var(--amber);
+      border-bottom-color: var(--amber);
+    }
+
+    /* ─── collapsible ─── */
+    .coll {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    .coll-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      background: rgba(255, 255, 255, .02);
+      cursor: pointer;
+      user-select: none;
+      gap: 10px;
+    }
+
+    .coll-header:hover {
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .coll-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .coll-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .coll-title {
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .coll-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .coll-chevron {
+      color: var(--muted);
+      font-size: 11px;
+      transition: transform .2s;
+    }
+
+    .coll-body {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      display: none;
+    }
+
+    .coll.open .coll-body {
+      display: block;
+    }
+
+    .coll.open .coll-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* nested */
+    .coll .coll {
+      margin-left: 0;
+      margin-top: 8px;
+      border-color: var(--border2);
+    }
+
+    .coll .coll .coll {
+      border-color: rgba(255, 255, 255, .04);
+    }
+
+    /* ─── badge ─── */
+    .badge {
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-family: 'IBM Plex Mono', monospace;
+      white-space: nowrap;
+      border: 1px solid;
+    }
+
+    .badge-danger {
+      color: var(--danger);
+      background: rgba(248, 113, 113, .1);
+      border-color: rgba(248, 113, 113, .3);
+    }
+
+    .badge-warn {
+      color: var(--warn);
+      background: rgba(251, 191, 36, .1);
+      border-color: rgba(251, 191, 36, .3);
+    }
+
+    .badge-success {
+      color: var(--success);
+      background: rgba(134, 239, 172, .1);
+      border-color: rgba(134, 239, 172, .3);
+    }
+
+    .badge-ok {
+      color: var(--ok);
+      background: rgba(148, 163, 184, .08);
+      border-color: rgba(148, 163, 184, .2);
+    }
+
+    .badge-info {
+      color: var(--muted);
+      background: rgba(107, 101, 96, .1);
+      border-color: rgba(107, 101, 96, .2);
+    }
+
+    /* ─── metrics row ─── */
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .metric {
+      background: rgba(255, 255, 255, .03);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 7px 12px;
+      min-width: 80px;
+    }
+
+    .metric.hl {
+      background: rgba(245, 158, 11, .1);
+      border-color: rgba(245, 158, 11, .3);
+    }
+
+    .metric .m-label {
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric .m-val {
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--text);
+    }
+
+    .metric.hl .m-val {
+      color: var(--amber);
+    }
+
+    /* ─── flags ─── */
+    .flags {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .flag {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .flag-icon {
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .flag-text {
+      color: var(--text);
+      opacity: .85;
+    }
+
+    /* ─── AI analysis ─── */
+    #ai-placeholder {
+      text-align: center;
+      padding-top: 40px;
+    }
+
+    #ai-placeholder p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 24px;
+      line-height: 1.8;
+    }
+
+    #ai-loading {
+      text-align: center;
+      padding-top: 48px;
+    }
+
+    #ai-loading .spinner {
+      font-size: 13px;
+      color: var(--amber-dim);
+      margin-bottom: 8px;
+    }
+
+    #ai-loading .sub {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    #ai-result {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ai-section {
+      background: rgba(245, 158, 11, .04);
+      border: 1px solid rgba(245, 158, 11, .12);
+      border-radius: 10px;
+      padding: 16px 18px;
+      animation: fadeIn .4s ease;
+    }
+
+    .ai-section h3 {
+      color: var(--amber);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .ai-section p {
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.8;
+      opacity: .9;
+      white-space: pre-wrap;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ─── reset row ─── */
+    #reset-row {
+      margin-top: 28px;
+      text-align: right;
+    }
+
+    /* ─── loading spinner pulse ─── */
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .pulse {
+      animation: pulse 1.4s infinite;
+    }
+
+    /* ─── thumb img ─── */
+    .ad-thumb {
+      height: 48px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      object-fit: cover;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="header">
+    <div>
+      <div class="label">TS · Meta Ads Intelligence</div>
+      <h1>Auditoria de Conta</h1>
+    </div>
+    <div class="period">últimos 14 dias</div>
+  </div>
+
+  <div id="app">
+    <div class="alert-warn">⚠ Nunca compartilhe seu token publicamente. Trate-o como senha.</div>
+
+    <!-- STEP 1: load accounts -->
+    <div id="step-load">
+      <p>Conecte às suas contas de anúncio para iniciar a auditoria.<br>Dados dos últimos 14 dias · Campanha → Ad Set →
+        Anúncio</p>
+      <button class="btn-primary" id="btn-load">→ Carregar Contas de Anúncio</button>
+    </div>
+
+    <!-- STEP 2: select + audit (hidden initially) -->
+    <div id="step-select" style="display:none">
+      <div id="account-list">
+        <div class="label">Selecionar Conta</div>
+        <div id="account-cards"></div>
+      </div>
+      <div id="step-audit">
+        <p class="acct-label">Conta: <strong id="selected-name">—</strong></p>
+        <button class="btn-primary" id="btn-audit" disabled>⚡ Iniciar Auditoria Completa</button>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-box" class="alert-err" style="display:none"></div>
+
+    <!-- RESULTS (hidden initially) -->
+    <div id="results" style="display:none">
+      <div id="kpi-bar"></div>
+
+      <div id="tabs">
+        <button class="tab active" data-tab="cascade">📊 Cascata de Dados</button>
+        <button class="tab" data-tab="ai">🤖 Análise IA</button>
+        <button class="tab" data-tab="export">📤 Exportar para IA</button>
+      </div>
+
+      <div id="tab-cascade">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--muted)" id="cascade-count"></div>
+          <div style="display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+            <button id="cfilter-all" onclick="setCascadeFilter('all')"
+              style="padding:5px 14px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:none;background:var(--amber);color:#0e0d0c;font-weight:700;transition:all .15s">
+              Todas
+            </button>
+            <button id="cfilter-active" onclick="setCascadeFilter('active')"
+              style="padding:5px 14px;font-size:11px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:none;background:transparent;color:var(--muted);font-weight:700;transition:all .15s">
+              Apenas Ativas
+            </button>
+          </div>
+        </div>
+        <div id="cascade-content"></div>
+        <div style="margin-top:20px;text-align:center">
+          <button class="btn-outline" id="btn-ai">🤖 Gerar Análise IA + Plano de Ação</button>
+        </div>
+      </div>
+
+      <div id="tab-ai" style="display:none">
+        <div id="ai-placeholder">
+          <p>Claude vai analisar todos os dados e gerar<br>um plano de ação priorizado para o gestor executar.</p>
+          <button class="btn-outline" id="btn-ai2">🤖 Gerar Análise IA</button>
+        </div>
+        <div id="ai-loading" style="display:none">
+          <div class="spinner pulse">Claude está analisando suas campanhas...</div>
+          <div class="sub" style="margin-top:8px">Isso pode levar alguns segundos</div>
+        </div>
+        <div id="ai-result" style="display:none"></div>
+      </div>
+
+      <div id="tab-export" style="display:none">
+        <div id="export-panel" style="text-align:center;padding-top:32px">
+          <p style="color:var(--muted);font-size:13px;line-height:1.9;margin-bottom:20px">
+            Gera um arquivo <strong style="color:var(--amber)">.txt</strong> com os dados da auditoria<br>+ prompt
+            pronto para colar em qualquer IA (ChatGPT, Claude, Gemini, etc).
+          </p>
+          <!-- Filter toggle -->
+          <div
+            style="display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px">
+            <button id="filter-all" class="export-filter active-filter" onclick="setExportFilter('all')"
+              style="padding:8px 20px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:none;background:var(--amber);color:#0e0d0c;font-weight:700;transition:all .15s">
+              Todas as Campanhas
+            </button>
+            <button id="filter-active" class="export-filter" onclick="setExportFilter('active')"
+              style="padding:8px 20px;font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;border:none;background:transparent;color:var(--muted);font-weight:700;transition:all .15s">
+              Apenas Ativas
+            </button>
+          </div>
+          <div id="export-count" style="font-size:11px;color:var(--muted);margin-bottom:20px"></div>
+          <button class="btn-outline" id="btn-export">📥 Baixar Arquivo para IA</button>
+          <div id="export-preview" style="display:none;margin-top:28px;text-align:left"></div>
+        </div>
+      </div>
+
+      <div id="reset-row">
+        <button class="btn-ghost" id="btn-reset">↺ Nova Auditoria</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────
+    // CONFIG — altere o token aqui se necessário
+    // ─────────────────────────────────────────────────────────────────
+    const TOKEN = "EAAiP7V7qPpUBRYbDk0JlxZBKHCuqW9DpKNyImH1tUsk0QDRrbJsAZCZBWAkcFxJmEqAEZAZAN91ZBvsUjIiRv5kSsQcCihZBtZBZBkoZAz8Ttxib1UtcZAsUQxtrMRq8rolk0OHtHXRVLlxfqvJptZCjywr6bgjaZBG3Xvy06zBfPCuy1JfCJF4QB7ZCyul7E7NAM7vAZDZD";
+    const BASE = "https://graph.facebook.com/v19.0";
+    const PERIOD = "last_14d";
+
+    // ─────────────────────────────────────────────────────────────────
+    // Graph API
+    // ─────────────────────────────────────────────────────────────────
+    async function gql(path, params = {}) {
+      const url = new URL(`${BASE}/${path}`);
+      url.searchParams.set("access_token", TOKEN);
+      for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+      const res = await fetch(url.toString());
+      const json = await res.json();
+      if (json.error) throw new Error(json.error.message);
+      return json;
+    }
+
+    async function fetchAdAccounts() {
+      const d = await gql("me/adaccounts", { fields: "id,name,account_status,currency,amount_spent,balance", limit: 50 });
+      return d.data || [];
+    }
+
+    async function fetchCampaigns(accountId) {
+      const f = `id,name,status,objective,daily_budget,lifetime_budget,insights.date_preset(${PERIOD}){spend,impressions,clicks,ctr,cpc,cpm,reach,frequency,actions,cost_per_action_type}`;
+      const d = await gql(`${accountId}/campaigns`, { fields: f, limit: 50 });
+      return d.data || [];
+    }
+
+    async function fetchAdSets(campaignId) {
+      const f = `id,name,status,optimization_goal,bid_strategy,daily_budget,insights.date_preset(${PERIOD}){spend,impressions,clicks,ctr,cpc,reach,frequency,actions,cost_per_action_type}`;
+      const d = await gql(`${campaignId}/adsets`, { fields: f, limit: 50 });
+      return d.data || [];
+    }
+
+    async function fetchAds(adSetId) {
+      const f = `id,name,status,creative{title,body,thumbnail_url},insights.date_preset(${PERIOD}){spend,impressions,clicks,ctr,cpc,reach,frequency,actions,cost_per_action_type}`;
+      const d = await gql(`${adSetId}/ads`, { fields: f, limit: 50 });
+      return d.data || [];
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Metrics helpers
+    // ─────────────────────────────────────────────────────────────────
+    function getLeads(ins) {
+      if (!ins) return 0;
+      const actions = ins.actions || [];
+      const lead = actions.find(a => ["lead", "onsite_conversion.lead_grouped", "leadgen_grouped"].includes(a.action_type));
+      return lead ? parseFloat(lead.value) : 0;
+    }
+    function getCPL(ins) {
+      if (!ins) return null;
+      const leads = getLeads(ins);
+      const spend = parseFloat(ins.spend || 0);
+      return leads > 0 ? spend / leads : null;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Rules engine
+    // ─────────────────────────────────────────────────────────────────
+    function applyRules(item) {
+      const ins = item.insights?.data?.[0];
+      const flags = [];
+      if (!ins) { flags.push({ type: "info", msg: "Sem dados no período de 14 dias" }); return flags; }
+      const spend = parseFloat(ins.spend || 0);
+      const ctr = parseFloat(ins.ctr || 0);
+      const freq = parseFloat(ins.frequency || 0);
+      const cpl = getCPL(ins);
+      const leads = getLeads(ins);
+      const cpc = parseFloat(ins.cpc || 0);
+      const impr = parseFloat(ins.impressions || 0);
+      if (spend < 1) flags.push({ type: "warn", msg: "Sem gasto no período — verifique budget e status" });
+      if (ctr < 0.5 && impr > 1000) flags.push({ type: "danger", msg: `CTR baixo (${ctr.toFixed(2)}%) — criativo ou público saturado` });
+      if (freq > 3.5) flags.push({ type: "danger", msg: `Frequência alta (${freq.toFixed(1)}x) — renovar criativo ou expandir audiência` });
+      if (cpl !== null && cpl > 80) flags.push({ type: "danger", msg: `CPL alto ($${cpl.toFixed(2)}) — revisar oferta, copy e segmentação` });
+      if (cpl !== null && cpl < 20 && leads >= 5) flags.push({ type: "success", msg: `CPL eficiente ($${cpl.toFixed(2)}) — candidato a escala de budget` });
+      if (leads === 0 && spend > 30) flags.push({ type: "danger", msg: `$${spend.toFixed(0)} gasto sem nenhum lead — pausar e revisar` });
+      if (cpc > 5) flags.push({ type: "warn", msg: `CPC alto ($${cpc.toFixed(2)}) — testar outros criativos ou ajustar bid` });
+      if (flags.length === 0) flags.push({ type: "ok", msg: "Métricas dentro do esperado" });
+      return flags;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // DOM helpers
+    // ─────────────────────────────────────────────────────────────────
+    function el(tag, attrs = {}, ...children) {
+      const e = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        if (k === "class") e.className = v;
+        else if (k === "style") Object.assign(e.style, v);
+        else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+        else e.setAttribute(k, v);
+      }
+      for (const c of children) {
+        if (c == null) continue;
+        e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+      }
+      return e;
+    }
+
+    function showError(msg) {
+      const box = document.getElementById("error-box");
+      box.textContent = "⚠ " + msg;
+      box.style.display = "block";
+    }
+    function hideError() { document.getElementById("error-box").style.display = "none"; }
+
+    const flagIcon = { danger: "⚠", warn: "○", success: "↑", ok: "·", info: "·" };
+    const flagColor = { danger: "#f87171", warn: "#fbbf24", success: "#86efac", ok: "#94a3b8", info: "#6b6560" };
+
+    function buildFlagList(flags) {
+      const wrap = el("div", { class: "flags" });
+      for (const f of flags) {
+        const row = el("div", { class: "flag" });
+        const icon = el("span", { class: "flag-icon", style: { color: flagColor[f.type] } }, flagIcon[f.type]);
+        const txt = el("span", { class: "flag-text" }, f.msg);
+        row.append(icon, txt);
+        wrap.appendChild(row);
+      }
+      return wrap;
+    }
+
+    function buildMetrics(ins) {
+      if (!ins) return el("p", { style: { color: "var(--muted)", fontSize: "12px" } }, "Sem dados no período");
+      const leads = getLeads(ins);
+      const cpl = getCPL(ins);
+      const defs = [
+        { label: "Gasto", value: `$${parseFloat(ins.spend || 0).toFixed(2)}`, hl: true },
+        { label: "Leads", value: leads, hl: leads > 0 },
+        { label: "CPL", value: cpl ? `$${cpl.toFixed(2)}` : "—" },
+        { label: "CTR", value: `${parseFloat(ins.ctr || 0).toFixed(2)}%` },
+        { label: "CPM", value: `$${parseFloat(ins.cpm || 0).toFixed(2)}` },
+        { label: "Freq.", value: parseFloat(ins.frequency || 0).toFixed(1) },
+        { label: "Alcance", value: parseInt(ins.reach || 0).toLocaleString() },
+      ];
+      const row = el("div", { class: "metrics" });
+      for (const d of defs) {
+        const m = el("div", { class: d.hl ? "metric hl" : "metric" });
+        m.appendChild(el("div", { class: "m-label" }, d.label));
+        m.appendChild(el("div", { class: "m-val" }, String(d.value)));
+        row.appendChild(m);
+      }
+      return row;
+    }
+
+    function dotColor(status) {
+      if (status === "ACTIVE") return "#86efac";
+      if (status === "PAUSED") return "#6b6560";
+      return "#fbbf24";
+    }
+
+    function badgeClass(type) {
+      return `badge badge-${type}`;
+    }
+
+    function buildCollapsible({ title, status, badgeText, badgeType, children, open = false }) {
+      const coll = el("div", { class: open ? "coll open" : "coll" });
+
+      const header = el("div", { class: "coll-header" });
+      const left = el("div", { class: "coll-left" });
+      const dot = el("span", { class: "coll-dot", style: { background: dotColor(status) } });
+      const titleEl = el("span", { class: "coll-title" }, title);
+      left.append(dot, titleEl);
+
+      const right = el("div", { class: "coll-right" });
+      if (badgeText) {
+        const badge = el("span", { class: badgeClass(badgeType || "ok") }, badgeText);
+        right.appendChild(badge);
+      }
+      const chev = el("span", { class: "coll-chevron" }, "▼");
+      right.appendChild(chev);
+
+      header.append(left, right);
+      coll.appendChild(header);
+
+      const body = el("div", { class: "coll-body" });
+      for (const c of children) body.appendChild(c);
+      coll.appendChild(body);
+
+      header.addEventListener("click", () => coll.classList.toggle("open"));
+      return coll;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────────────────────────────
+    let accounts = [];
+    let selectedAcc = null;
+    let auditData = null;
+
+    // ─────────────────────────────────────────────────────────────────
+    // Load accounts
+    // ─────────────────────────────────────────────────────────────────
+    document.getElementById("btn-load").addEventListener("click", async () => {
+      const btn = document.getElementById("btn-load");
+      btn.disabled = true;
+      btn.textContent = "Carregando...";
+      hideError();
+      try {
+        accounts = await fetchAdAccounts();
+        document.getElementById("step-load").style.display = "none";
+        renderAccountCards();
+        document.getElementById("step-select").style.display = "block";
+        if (accounts.length === 1) selectAccount(accounts[0]);
+      } catch (e) {
+        showError(e.message);
+        btn.disabled = false;
+        btn.textContent = "→ Carregar Contas de Anúncio";
+      }
+    });
+
+    function renderAccountCards() {
+      const container = document.getElementById("account-cards");
+      container.innerHTML = "";
+      for (const acc of accounts) {
+        const card = el("div", { class: "account-card", onclick: () => selectAccount(acc) });
+        card.appendChild(el("div", { class: "name" }, acc.name));
+        card.appendChild(el("div", { class: "meta" }, `${acc.id} · Status: ${acc.account_status === 1 ? "Ativo" : acc.account_status} · ${acc.currency}`));
+        card.dataset.id = acc.id;
+        container.appendChild(card);
+      }
+    }
+
+    function selectAccount(acc) {
+      selectedAcc = acc;
+      document.querySelectorAll(".account-card").forEach(c => {
+        c.classList.toggle("selected", c.dataset.id === acc.id);
+      });
+      document.getElementById("selected-name").textContent = acc.name;
+      document.getElementById("btn-audit").disabled = false;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Run audit
+    // ─────────────────────────────────────────────────────────────────
+    document.getElementById("btn-audit").addEventListener("click", runAudit);
+
+    async function runAudit() {
+      const btn = document.getElementById("btn-audit");
+      btn.disabled = true;
+      btn.textContent = "Auditando campanhas...";
+      hideError();
+      try {
+        const campaigns = await fetchCampaigns(selectedAcc.id);
+        const withAdsets = await Promise.all(campaigns.map(async c => {
+          const adsets = await fetchAdSets(c.id);
+          const withAds = await Promise.all(adsets.map(async as => {
+            const ads = await fetchAds(as.id);
+            return { ...as, ads };
+          }));
+          return { ...c, adsets: withAds };
+        }));
+        auditData = { account: selectedAcc, campaigns: withAdsets };
+        document.getElementById("step-select").style.display = "none";
+        renderResults();
+      } catch (e) {
+        showError(e.message);
+        btn.disabled = false;
+        btn.textContent = "⚡ Iniciar Auditoria Completa";
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Render results
+    // ─────────────────────────────────────────────────────────────────
+    let cascadeFilter = "all"; // "all" | "active"
+
+    function setCascadeFilter(mode) {
+      cascadeFilter = mode;
+      document.getElementById("cfilter-all").style.background = mode === "all" ? "var(--amber)" : "transparent";
+      document.getElementById("cfilter-all").style.color = mode === "all" ? "#0e0d0c" : "var(--muted)";
+      document.getElementById("cfilter-active").style.background = mode === "active" ? "var(--amber)" : "transparent";
+      document.getElementById("cfilter-active").style.color = mode === "active" ? "#0e0d0c" : "var(--muted)";
+      renderCascade();
+    }
+
+    function renderCascade() {
+      const { campaigns: allCampaigns } = auditData;
+      const campaigns = cascadeFilter === "active"
+        ? allCampaigns.filter(c => c.status === "ACTIVE")
+        : allCampaigns;
+
+      const countEl = document.getElementById("cascade-count");
+      if (cascadeFilter === "active") {
+        countEl.textContent = `${campaigns.length} ativa${campaigns.length !== 1 ? "s" : ""} de ${allCampaigns.length} total`;
+        countEl.style.color = campaigns.length > 0 ? "var(--success)" : "var(--danger)";
+      } else {
+        countEl.textContent = `${allCampaigns.length} campanha${allCampaigns.length !== 1 ? "s" : ""}`;
+        countEl.style.color = "var(--muted)";
+      }
+
+      const cc = document.getElementById("cascade-content");
+      cc.innerHTML = "";
+      if (campaigns.length === 0) {
+        cc.appendChild(el("p", { style: { color: "var(--muted)", fontSize: "13px", marginTop: "16px" } }, "Nenhuma campanha ativa encontrada nessa conta."));
+        return;
+      }
+      for (const camp of campaigns) {
+        const cIns = camp.insights?.data?.[0];
+        const cFlags = applyRules(camp);
+        const campColl = buildCollapsible({
+          title: `[CAMPANHA] ${camp.name}`,
+          status: camp.status,
+          badgeText: camp.objective,
+          badgeType: cFlags[0]?.type,
+          open: true,
+          children: [
+            buildMetrics(cIns),
+            buildFlagList(cFlags),
+            ...((camp.adsets || []).map(adset => {
+              const asIns = adset.insights?.data?.[0];
+              const asFlags = applyRules(adset);
+              return buildCollapsible({
+                title: `[AD SET] ${adset.name}`,
+                status: adset.status,
+                badgeText: adset.optimization_goal || "—",
+                badgeType: asFlags[0]?.type,
+                open: false,
+                children: [
+                  buildMetrics(asIns),
+                  buildFlagList(asFlags),
+                  ...((adset.ads || []).map(ad => {
+                    const adIns = ad.insights?.data?.[0];
+                    const adFlags = applyRules(ad);
+                    const adChildren = [];
+                    if (ad.creative?.thumbnail_url) {
+                      adChildren.push(el("img", { class: "ad-thumb", src: ad.creative.thumbnail_url, alt: "thumb" }));
+                    }
+                    adChildren.push(buildMetrics(adIns));
+                    adChildren.push(buildFlagList(adFlags));
+                    return buildCollapsible({
+                      title: `[ANÚNCIO] ${ad.name}`,
+                      status: ad.status,
+                      badgeText: adFlags[0]?.type,
+                      badgeType: adFlags[0]?.type,
+                      open: false,
+                      children: adChildren,
+                    });
+                  }))
+                ],
+              });
+            }))
+          ],
+        });
+        cc.appendChild(campColl);
+      }
+    }
+
+    function renderResults() {
+      const { campaigns } = auditData;
+
+      // KPI sempre com todos os dados
+      const totalSpend = campaigns.reduce((s, c) => s + parseFloat(c.insights?.data?.[0]?.spend || 0), 0);
+      const totalLeads = campaigns.reduce((s, c) => s + getLeads(c.insights?.data?.[0]), 0);
+      const avgCPL = totalLeads > 0 ? totalSpend / totalLeads : null;
+      const activeCamp = campaigns.filter(c => c.status === "ACTIVE").length;
+
+      const kpiBar = document.getElementById("kpi-bar");
+      kpiBar.innerHTML = "";
+      const kpis = [
+        { label: "Campanhas Ativas", value: activeCamp },
+        { label: "Total Gasto (14d)", value: `$${totalSpend.toFixed(2)}`, hl: true },
+        { label: "Total Leads", value: totalLeads, hl: true },
+        { label: "CPL Médio", value: avgCPL ? `$${avgCPL.toFixed(2)}` : "—" },
+        { label: "Moeda", value: selectedAcc.currency },
+      ];
+      for (const k of kpis) {
+        const pill = el("div", { class: k.hl ? "kpi hl" : "kpi" });
+        pill.appendChild(el("div", { class: "kpi-label" }, k.label));
+        pill.appendChild(el("div", { class: "kpi-val" }, String(k.value)));
+        kpiBar.appendChild(pill);
+      }
+
+      renderCascade();
+
+      document.getElementById("results").style.display = "block";
+      updateExportCount();
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Tabs
+    // ─────────────────────────────────────────────────────────────────
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById("tab-cascade").style.display = tab.dataset.tab === "cascade" ? "block" : "none";
+        document.getElementById("tab-ai").style.display = tab.dataset.tab === "ai" ? "block" : "none";
+        document.getElementById("tab-export").style.display = tab.dataset.tab === "export" ? "block" : "none";
+      });
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // AI Analysis
+    // ─────────────────────────────────────────────────────────────────
+    async function runAI() {
+      document.getElementById("ai-placeholder").style.display = "none";
+      document.getElementById("ai-loading").style.display = "block";
+      document.getElementById("ai-result").style.display = "none";
+
+      // Switch to AI tab
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === "ai"));
+      document.getElementById("tab-cascade").style.display = "none";
+      document.getElementById("tab-ai").style.display = "block";
+
+      const summary = auditData.campaigns.map(c => {
+        const ins = c.insights?.data?.[0];
+        return {
+          campanha: c.name,
+          objetivo: c.objective,
+          status: c.status,
+          gasto: ins?.spend,
+          leads: getLeads(ins),
+          cpl: getCPL(ins),
+          ctr: ins?.ctr,
+          frequencia: ins?.frequency,
+          adsets: (c.adsets || []).map(as => {
+            const ai = as.insights?.data?.[0];
+            return {
+              nome: as.name,
+              status: as.status,
+              gasto: ai?.spend,
+              ctr: ai?.ctr,
+              cpl: getCPL(ai),
+              leads: getLeads(ai),
+              frequencia: ai?.frequency,
+              bid_strategy: as.bid_strategy,
+              objetivo_otimizacao: as.optimization_goal,
+            };
+          }),
+        };
+      });
+
+      const prompt = `Você é um especialista sênior em tráfego pago com foco em home services nos EUA (HVAC, roofing, plumbing, etc).
+
+Analise os dados de desempenho abaixo de uma conta Meta Ads (últimos 14 dias) e entregue exatamente estas 4 seções, com os cabeçalhos exatos abaixo:
+
+**1. Diagnóstico Geral da Conta**
+(saúde geral, o que está funcionando e o que não está)
+
+**2. Top 3 Problemas Críticos**
+(com impacto direto em custo e resultado)
+
+**3. Plano de Ação Priorizado**
+(5 ações específicas, ordenadas por impacto, com instrução clara de COMO executar cada uma dentro do Gerenciador de Anúncios)
+
+**4. Oportunidades de Escala**
+(o que merece mais budget e por quê)
+
+Seja direto, prático e específico. Use nomes reais das campanhas/adsets. Fale como um gestor que vai executar amanhã de manhã.
+
+DADOS:
+${JSON.stringify(summary, null, 2)}`;
+
+      try {
+        const res = await fetch("http://localhost:3000/api/claude", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 1000,
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+        const data = await res.json();
+        const text = data.content?.[0]?.text || "Sem resposta da IA.";
+        renderAI(text);
+      } catch (e) {
+        document.getElementById("ai-loading").style.display = "none";
+        document.getElementById("ai-placeholder").style.display = "block";
+        showError(e.message);
+      }
+    }
+
+    function renderAI(text) {
+      document.getElementById("ai-loading").style.display = "none";
+      const result = document.getElementById("ai-result");
+      result.innerHTML = "";
+
+      // split by section headers
+      const sections = text.split(/(?=\*\*[0-9]|\*\*Diagnóstico|\*\*Top|\*\*Plano|\*\*Oportunidade)/);
+      for (const section of sections) {
+        const lines = section.trim().split("\n");
+        const title = lines[0].replace(/\*\*/g, "").trim();
+        const body = lines.slice(1).join("\n").trim().replace(/\*\*/g, "");
+        if (!title) continue;
+        const sec = el("div", { class: "ai-section" });
+        sec.appendChild(el("h3", {}, title));
+        sec.appendChild(el("p", {}, body));
+        result.appendChild(sec);
+      }
+
+      result.style.display = "flex";
+    }
+
+    document.getElementById("btn-ai").addEventListener("click", runAI);
+    document.getElementById("btn-ai2").addEventListener("click", runAI);
+
+    // ─────────────────────────────────────────────────────────────────
+    // Reset
+    // ─────────────────────────────────────────────────────────────────
+    document.getElementById("btn-reset").addEventListener("click", () => {
+      accounts = []; selectedAcc = null; auditData = null;
+      document.getElementById("results").style.display = "none";
+      document.getElementById("step-select").style.display = "none";
+      document.getElementById("step-load").style.display = "block";
+      document.getElementById("btn-load").disabled = false;
+      document.getElementById("btn-load").textContent = "→ Carregar Contas de Anúncio";
+      document.getElementById("ai-placeholder").style.display = "block";
+      document.getElementById("ai-loading").style.display = "none";
+      document.getElementById("ai-result").style.display = "none";
+      document.getElementById("cascade-content").innerHTML = "";
+      document.getElementById("kpi-bar").innerHTML = "";
+      document.getElementById("export-preview").style.display = "none";
+      document.getElementById("export-preview").innerHTML = "";
+      document.getElementById("export-count").textContent = "";
+      document.getElementById("cascade-count").textContent = "";
+      cascadeFilter = "all";
+      setCascadeFilter("all");
+      exportFilter = "all";
+      setExportFilter("all");
+      hideError();
+      // reset tabs
+      document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", i === 0));
+      document.getElementById("tab-cascade").style.display = "block";
+      document.getElementById("tab-ai").style.display = "none";
+      document.getElementById("tab-export").style.display = "none";
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Export to AI
+    // ─────────────────────────────────────────────────────────────────
+    let exportFilter = "all"; // "all" | "active"
+
+    function setExportFilter(mode) {
+      exportFilter = mode;
+      document.getElementById("filter-all").style.background = mode === "all" ? "var(--amber)" : "transparent";
+      document.getElementById("filter-all").style.color = mode === "all" ? "#0e0d0c" : "var(--muted)";
+      document.getElementById("filter-active").style.background = mode === "active" ? "var(--amber)" : "transparent";
+      document.getElementById("filter-active").style.color = mode === "active" ? "#0e0d0c" : "var(--muted)";
+      updateExportCount();
+    }
+
+    function updateExportCount() {
+      if (!auditData) return;
+      const allCamps = auditData.campaigns;
+      const activeCamps = allCamps.filter(c => c.status === "ACTIVE");
+      const count = document.getElementById("export-count");
+      if (exportFilter === "active") {
+        const activeAdsets = activeCamps.reduce((s, c) => s + (c.adsets || []).filter(as => as.status === "ACTIVE").length, 0);
+        const activeAds = activeCamps.reduce((s, c) => s + (c.adsets || []).filter(as => as.status === "ACTIVE").reduce((s2, as) => s2 + (as.ads || []).filter(a => a.status === "ACTIVE").length, 0), 0);
+        count.textContent = `${activeCamps.length} campanha${activeCamps.length !== 1 ? "s" : ""} · ${activeAdsets} ad set${activeAdsets !== 1 ? "s" : ""} · ${activeAds} anúncio${activeAds !== 1 ? "s" : ""} ativos`;
+        count.style.color = activeCamps.length > 0 ? "var(--success)" : "var(--danger)";
+      } else {
+        const totalAdsets = allCamps.reduce((s, c) => s + (c.adsets || []).length, 0);
+        const totalAds = allCamps.reduce((s, c) => s + (c.adsets || []).reduce((s2, as) => s2 + (as.ads || []).length, 0), 0);
+        count.textContent = `${allCamps.length} campanhas · ${totalAdsets} ad sets · ${totalAds} anúncios`;
+        count.style.color = "var(--muted)";
+      }
+    }
+    function buildExportText() {
+      const { account, campaigns: allCampaigns } = auditData;
+      const campaigns = exportFilter === "active"
+        ? allCampaigns.filter(c => c.status === "ACTIVE")
+        : allCampaigns;
+
+      const filterLabel = exportFilter === "active" ? "Apenas Campanhas Ativas" : "Todas as Campanhas";
+      const totalSpend = campaigns.reduce((s, c) => s + parseFloat(c.insights?.data?.[0]?.spend || 0), 0);
+      const totalLeads = campaigns.reduce((s, c) => s + getLeads(c.insights?.data?.[0]), 0);
+      const avgCPL = totalLeads > 0 ? (totalSpend / totalLeads).toFixed(2) : "N/A";
+
+      const lines = [];
+      lines.push("═══════════════════════════════════════════════════════════");
+      lines.push("  META ADS · RELATÓRIO DE AUDITORIA — TS Intelligence");
+      lines.push(`  Conta: ${account.name} (${account.id})`);
+      lines.push(`  Período: Últimos 14 dias`);
+      lines.push(`  Filtro: ${filterLabel}`);
+      lines.push(`  Gerado em: ${new Date().toLocaleString("pt-BR")}`);
+      lines.push("═══════════════════════════════════════════════════════════");
+      lines.push("");
+      lines.push("── RESUMO DA CONTA ─────────────────────────────────────────");
+      lines.push(`  Gasto Total:     $${totalSpend.toFixed(2)}`);
+      lines.push(`  Leads Totais:    ${totalLeads}`);
+      lines.push(`  CPL Médio:       $${avgCPL}`);
+      lines.push(`  Campanhas Ativas: ${campaigns.filter(c => c.status === "ACTIVE").length} / ${campaigns.length}`);
+      lines.push("");
+
+      for (const camp of campaigns) {
+        const cIns = camp.insights?.data?.[0];
+        const cLeads = getLeads(cIns);
+        const cCPL = getCPL(cIns);
+        const cFlags = applyRules(camp);
+
+        lines.push("────────────────────────────────────────────────────────────");
+        lines.push(`  [CAMPANHA] ${camp.name}`);
+        lines.push(`  Status: ${camp.status} | Objetivo: ${camp.objective}`);
+        if (cIns) {
+          lines.push(`  Gasto: $${parseFloat(cIns.spend || 0).toFixed(2)} | Leads: ${cLeads} | CPL: ${cCPL ? "$" + cCPL.toFixed(2) : "N/A"}`);
+          lines.push(`  CTR: ${parseFloat(cIns.ctr || 0).toFixed(2)}% | CPM: $${parseFloat(cIns.cpm || 0).toFixed(2)} | Freq: ${parseFloat(cIns.frequency || 0).toFixed(1)} | Alcance: ${parseInt(cIns.reach || 0).toLocaleString()}`);
+        } else {
+          lines.push(`  Sem dados no período`);
+        }
+        for (const f of cFlags) lines.push(`  ⚑ [${f.type.toUpperCase()}] ${f.msg}`);
+        lines.push("");
+
+        for (const adset of (camp.adsets || []).filter(as => exportFilter === "active" ? as.status === "ACTIVE" : true)) {
+          const asIns = adset.insights?.data?.[0];
+          const asLeads = getLeads(asIns);
+          const asCPL = getCPL(asIns);
+          const asFlags = applyRules(adset);
+
+          lines.push(`    [AD SET] ${adset.name}`);
+          lines.push(`    Status: ${adset.status} | Otimização: ${adset.optimization_goal || "—"} | Bid: ${adset.bid_strategy || "—"}`);
+          if (asIns) {
+            lines.push(`    Gasto: $${parseFloat(asIns.spend || 0).toFixed(2)} | Leads: ${asLeads} | CPL: ${asCPL ? "$" + asCPL.toFixed(2) : "N/A"}`);
+            lines.push(`    CTR: ${parseFloat(asIns.ctr || 0).toFixed(2)}% | Freq: ${parseFloat(asIns.frequency || 0).toFixed(1)}`);
+          } else {
+            lines.push(`    Sem dados no período`);
+          }
+          for (const f of asFlags) lines.push(`    ⚑ [${f.type.toUpperCase()}] ${f.msg}`);
+          lines.push("");
+
+          for (const ad of (adset.ads || []).filter(a => exportFilter === "active" ? a.status === "ACTIVE" : true)) {
+            const adIns = ad.insights?.data?.[0];
+            const adLeads = getLeads(adIns);
+            const adCPL = getCPL(adIns);
+            const adFlags = applyRules(ad);
+
+            lines.push(`      [ANÚNCIO] ${ad.name}`);
+            lines.push(`      Status: ${ad.status}`);
+            if (adIns) {
+              lines.push(`      Gasto: $${parseFloat(adIns.spend || 0).toFixed(2)} | Leads: ${adLeads} | CPL: ${adCPL ? "$" + adCPL.toFixed(2) : "N/A"}`);
+              lines.push(`      CTR: ${parseFloat(adIns.ctr || 0).toFixed(2)}% | Freq: ${parseFloat(adIns.frequency || 0).toFixed(1)}`);
+            } else {
+              lines.push(`      Sem dados no período`);
+            }
+            for (const f of adFlags) lines.push(`      ⚑ [${f.type.toUpperCase()}] ${f.msg}`);
+            lines.push("");
+          }
+        }
+      }
+
+      lines.push("═══════════════════════════════════════════════════════════");
+      lines.push("  PROMPT PARA IA — COPIE TUDO ABAIXO E ENVIE JUNTO COM");
+      lines.push("  OS DADOS ACIMA PARA QUALQUER IA DE SUA PREFERÊNCIA");
+      lines.push("═══════════════════════════════════════════════════════════");
+      lines.push("");
+      lines.push("Você é um especialista sênior em tráfego pago com foco em home services nos EUA (HVAC, roofing, plumbing, etc).");
+      lines.push("");
+      lines.push("Analise os dados de desempenho acima de uma conta Meta Ads (últimos 14 dias) e entregue exatamente estas 4 seções:");
+      lines.push("");
+      lines.push("1. DIAGNÓSTICO GERAL DA CONTA");
+      lines.push("   → Saúde geral da conta, o que está funcionando e o que não está.");
+      lines.push("");
+      lines.push("2. TOP 3 PROBLEMAS CRÍTICOS");
+      lines.push("   → Com impacto direto em custo e resultado. Cite campanha/adset específico.");
+      lines.push("");
+      lines.push("3. PLANO DE AÇÃO PRIORIZADO (5 ações)");
+      lines.push("   → Ordenadas por impacto. Para cada ação: O QUE fazer + COMO executar no Gerenciador de Anúncios.");
+      lines.push("");
+      lines.push("4. OPORTUNIDADES DE ESCALA");
+      lines.push("   → O que merece mais budget e por quê. Seja específico com números.");
+      lines.push("");
+      lines.push("Seja direto e prático. Use os nomes reais das campanhas/adsets dos dados acima.");
+      lines.push("Fale como um gestor que vai executar amanhã de manhã.");
+
+      return lines.join("\n");
+    }
+
+    document.getElementById("btn-export").addEventListener("click", () => {
+      if (!auditData) return;
+
+      const content = buildExportText();
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const date = new Date().toISOString().slice(0, 10);
+      const tag = exportFilter === "active" ? "-ativas" : "";
+      a.href = url;
+      a.download = `meta-audit-${auditData.account.name.replace(/\s+/g, "-")}${tag}-${date}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      // Show preview
+      const preview = document.getElementById("export-preview");
+      preview.innerHTML = "";
+      const pre = document.createElement("pre");
+      pre.style.cssText = "background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:16px;font-size:11px;color:var(--muted);max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-family:'IBM Plex Mono',monospace;line-height:1.6";
+      pre.textContent = content.slice(0, 2000) + (content.length > 2000 ? "\n\n... [arquivo completo no download]" : "");
+      const hint = document.createElement("p");
+      hint.style.cssText = "font-size:11px;color:var(--success);margin-top:10px;text-align:center";
+      hint.textContent = "✓ Arquivo baixado! Abra qualquer IA, anexe ou cole o conteúdo junto com o prompt no final.";
+      preview.appendChild(pre);
+      preview.appendChild(hint);
+      preview.style.display = "block";
+    });
+  </script>
+</body>
+
+</html>

@@ -1,26 +1,71 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --color-border: #1f1f1f;
+  --color-primary: #f59e0b;
+  --color-card: #141414;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: #0c0c0c;
+  --foreground: #e5e5e5;
+  --card: #141414;
+  --border: #1f1f1f;
+  --primary: #f59e0b;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  body {
+    @apply bg-[#0c0c0c] text-[#d1d1d1] font-sans antialiased;
+    background-image: radial-gradient(circle at 50% -20%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+    background-attachment: fixed;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  .badge-pill {
+    @apply px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5;
+  }
+  
+  .badge-active {
+    @apply bg-[#062016] text-[#10b981] border border-[#064e3b]/30;
+  }
+  
+  .badge-warning {
+    @apply bg-[#2d1a05] text-[#f59e0b] border border-[#78350f]/30;
+  }
+
+  .badge-danger {
+    @apply bg-[#2d0505] text-[#ef4444] border border-[#7f1d1d]/30;
+  }
+
+  .ts-card {
+    @apply bg-[#111111] border border-[#1a1a1a] transition-all duration-300 hover:bg-[#141414] hover:border-[#222222] rounded-2xl overflow-hidden;
+  }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #1f1f1f;
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #333;
+  }
 }
