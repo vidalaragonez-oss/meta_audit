@@ -598,35 +598,44 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="max-h-80 overflow-y-auto py-2 custom-scrollbar">
-                    {accounts
-                      .filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch))
-                      .sort((a, b) => {
-                        const aFav = favoriteAccountIds.includes(a.id);
-                        const bFav = favoriteAccountIds.includes(b.id);
-                        if (aFav && !bFav) return -1;
-                        if (!aFav && bFav) return 1;
-                        return a.name.localeCompare(b.name);
-                      })
-                      .map(acc => (
-                        <div 
-                          key={acc.id} 
-                          className={`px-4 py-3 text-[10px] font-bold uppercase cursor-pointer hover:bg-[#1a1a1a] flex items-center justify-between group ${selectedAccountId === acc.id ? 'bg-primary/5' : ''}`}
-                          onClick={() => { setSelectedAccount(acc.id); setIsAccountOpen(false); setAccountSearch(''); }}
-                        >
-                          <div className="flex flex-col gap-0.5">
-                            <span className={selectedAccountId === acc.id ? 'text-primary' : 'text-[#888] group-hover:text-white'}>{acc.name}</span>
-                            <span className="text-[8px] text-[#333] tracking-normal font-mono">{acc.id}</span>
-                          </div>
-                          <div 
-                            onClick={(e) => { e.stopPropagation(); toggleFavoriteAccount(acc.id); }}
-                            className={`p-2 rounded-lg transition-all ${favoriteAccountIds.includes(acc.id) ? 'text-primary' : 'text-[#222] hover:text-[#444]'}`}
-                          >
-                            <Star className={`w-3.5 h-3.5 ${favoriteAccountIds.includes(acc.id) ? 'fill-current' : ''}`} />
-                          </div>
-                        </div>
-                      ))}
-                    {accounts.filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch)).length === 0 && (
-                      <div className="px-6 py-8 text-center text-[10px] font-bold text-[#333] uppercase tracking-widest">Nenhuma conta encontrada</div>
+                    {isLoading && accounts.length === 0 ? (
+                      <div className="px-6 py-12 flex flex-col items-center gap-3">
+                        <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                        <span className="text-[10px] font-bold text-[#333] uppercase tracking-widest">Sincronizando Contas...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {accounts
+                          .filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch))
+                          .sort((a, b) => {
+                            const aFav = favoriteAccountIds.includes(a.id);
+                            const bFav = favoriteAccountIds.includes(b.id);
+                            if (aFav && !bFav) return -1;
+                            if (!aFav && bFav) return 1;
+                            return a.name.localeCompare(b.name);
+                          })
+                          .map(acc => (
+                            <div 
+                              key={acc.id} 
+                              className={`px-4 py-3 text-[10px] font-bold uppercase cursor-pointer hover:bg-[#1a1a1a] flex items-center justify-between group ${selectedAccountId === acc.id ? 'bg-primary/5' : ''}`}
+                              onClick={() => { setSelectedAccount(acc.id); setIsAccountOpen(false); setAccountSearch(''); }}
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <span className={selectedAccountId === acc.id ? 'text-primary' : 'text-[#888] group-hover:text-white'}>{acc.name}</span>
+                                <span className="text-[8px] text-[#333] tracking-normal font-mono">{acc.id}</span>
+                              </div>
+                              <div 
+                                onClick={(e) => { e.stopPropagation(); toggleFavoriteAccount(acc.id); }}
+                                className={`p-2 rounded-lg transition-all ${favoriteAccountIds.includes(acc.id) ? 'text-primary' : 'text-[#222] hover:text-[#444]'}`}
+                              >
+                                <Star className={`w-3.5 h-3.5 ${favoriteAccountIds.includes(acc.id) ? 'fill-current' : ''}`} />
+                              </div>
+                            </div>
+                          ))}
+                        {accounts.filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch)).length === 0 && (
+                          <div className="px-6 py-8 text-center text-[10px] font-bold text-[#333] uppercase tracking-widest">Nenhuma conta encontrada</div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
