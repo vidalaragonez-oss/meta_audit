@@ -14,6 +14,8 @@ interface AuditState {
   accountBaseline: { avgCpl: number, avgCtr: number } | null;
   isLoading: boolean;
   error: string | null;
+  favoriteAccountIds: string[];
+
 
   setAccounts: (accounts: MetaAdAccount[]) => void;
   setSelectedAccount: (id: string | null) => void;
@@ -26,6 +28,8 @@ interface AuditState {
   clearSelection: () => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+  toggleFavoriteAccount: (id: string) => void;
+
 }
 
 export const useAuditStore = create<AuditState>((set) => ({
@@ -40,6 +44,8 @@ export const useAuditStore = create<AuditState>((set) => ({
   accountBaseline: null,
   isLoading: false,
   error: null,
+  favoriteAccountIds: typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('favoriteAccountIds') || '[]') : [],
+
 
   setAccounts: (accounts) => set({ accounts }),
   setSelectedAccount: (selectedAccountId) => set({ selectedAccountId }),
@@ -62,4 +68,14 @@ export const useAuditStore = create<AuditState>((set) => ({
   clearSelection: () => set({ selectedCampaignIds: [] }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+  toggleFavoriteAccount: (id) => set((state) => {
+    const favorites = state.favoriteAccountIds.includes(id)
+      ? state.favoriteAccountIds.filter(i => i !== id)
+      : [...state.favoriteAccountIds, id];
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('favoriteAccountIds', JSON.stringify(favorites));
+    }
+    return { favoriteAccountIds: favorites };
+  }),
+
 }));

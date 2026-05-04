@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Zap, Database, Download, Settings as SettingsIcon, ChevronRight, Check, User, Bell, Search, ChevronDown, Columns } from 'lucide-react';
+import { Loader2, Zap, Database, Download, Settings as SettingsIcon, ChevronRight, Check, User, Bell, Search, ChevronDown, Columns, Star } from 'lucide-react';
 import { AppSettings, AVAILABLE_COLUMNS, DEFAULT_COLUMNS } from '@/lib/db/types';
 
 const PRESETS = [
@@ -36,7 +36,9 @@ export default function Home() {
     setAuditResults, 
     toggleCampaignSelection,
     toggleAllCampaigns,
-    setLoading 
+    setLoading,
+    favoriteAccountIds,
+    toggleFavoriteAccount
   } = useAuditStore();
 
   const [settings, setSettings] = useState<AppSettings>({
@@ -49,6 +51,7 @@ export default function Home() {
   });
 
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [accountSearch, setAccountSearch] = useState('');
   const [expandedCampaigns, setExpandedCampaigns] = useState<string[]>([]);
   const [expandedAdSets, setExpandedAdSets] = useState<string[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -554,11 +557,52 @@ export default function Home() {
                 <ChevronDown className={`w-4 h-4 text-[#333] transition-transform mr-4 ${isAccountOpen ? 'rotate-180' : ''}`} />
               </div>
               {isAccountOpen && (
-                <div className="absolute top-[calc(100%+12px)] left-[-24px] w-80 bg-[#121212] border border-[#1f1f1f] rounded-2xl shadow-2xl z-[100]">
-                  <div className="max-h-60 overflow-y-auto py-2 custom-scrollbar">
-                    {accounts.map(acc => (
-                      <div key={acc.id} onClick={() => { setSelectedAccount(acc.id); setIsAccountOpen(false); }} className={`px-6 py-3 text-[10px] font-bold uppercase cursor-pointer hover:bg-[#1a1a1a] ${selectedAccountId === acc.id ? 'text-primary' : 'text-[#555]'}`}>{acc.name}</div>
-                    ))}
+                <div className="absolute top-[calc(100%+12px)] left-[-24px] w-96 bg-[#121212] border border-[#1f1f1f] rounded-2xl shadow-2xl z-[100] flex flex-col overflow-hidden">
+                  <div className="p-4 border-b border-[#1f1f1f]">
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#444]" />
+                      <input 
+                        type="text" 
+                        placeholder="PESQUISAR CONTA..."
+                        value={accountSearch}
+                        onChange={(e) => setAccountSearch(e.target.value)}
+                        className="w-full bg-[#080808] border border-[#1f1f1f] rounded-xl py-3 pl-10 pr-4 text-[10px] font-bold text-white uppercase tracking-widest focus:border-primary outline-none transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto py-2 custom-scrollbar">
+                    {accounts
+                      .filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch))
+                      .sort((a, b) => {
+                        const aFav = favoriteAccountIds.includes(a.id);
+                        const bFav = favoriteAccountIds.includes(b.id);
+                        if (aFav && !bFav) return -1;
+                        if (!aFav && bFav) return 1;
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map(acc => (
+                        <div 
+                          key={acc.id} 
+                          className={`px-4 py-3 text-[10px] font-bold uppercase cursor-pointer hover:bg-[#1a1a1a] flex items-center justify-between group ${selectedAccountId === acc.id ? 'bg-primary/5' : ''}`}
+                          onClick={() => { setSelectedAccount(acc.id); setIsAccountOpen(false); setAccountSearch(''); }}
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <span className={selectedAccountId === acc.id ? 'text-primary' : 'text-[#888] group-hover:text-white'}>{acc.name}</span>
+                            <span className="text-[8px] text-[#333] tracking-normal font-mono">{acc.id}</span>
+                          </div>
+                          <div 
+                            onClick={(e) => { e.stopPropagation(); toggleFavoriteAccount(acc.id); }}
+                            className={`p-2 rounded-lg transition-all ${favoriteAccountIds.includes(acc.id) ? 'text-primary' : 'text-[#222] hover:text-[#444]'}`}
+                          >
+                            <Star className={`w-3.5 h-3.5 ${favoriteAccountIds.includes(acc.id) ? 'fill-current' : ''}`} />
+                          </div>
+                        </div>
+                      ))}
+                    {accounts.filter(acc => acc.name.toLowerCase().includes(accountSearch.toLowerCase()) || acc.id.includes(accountSearch)).length === 0 && (
+                      <div className="px-6 py-8 text-center text-[10px] font-bold text-[#333] uppercase tracking-widest">Nenhuma conta encontrada</div>
+                    )}
                   </div>
                 </div>
               )}

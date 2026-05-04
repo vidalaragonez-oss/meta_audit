@@ -36,7 +36,7 @@ export class MetaIntegrationService {
   async getAdAccounts(): Promise<MetaAdAccount[]> {
     const response = await this.fetchFromGraph<MetaApiResponse<MetaAdAccount>>('me/adaccounts', {
       fields: 'id,name,account_status,currency,amount_spent,balance',
-      limit: '50'
+      limit: '500'
     });
     return response.data;
   }
