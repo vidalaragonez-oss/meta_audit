@@ -86,7 +86,7 @@ export default function Home() {
       setSettings(data);
       if (data.metaAccessToken) {
         const res = await getAccounts();
-        if (res.success) setAccounts(res.data);
+        if (res.success && res.data) setAccounts(res.data);
       }
     }
     setLoading(false);
@@ -120,7 +120,7 @@ export default function Home() {
     }
     
     const res = await startAudit(selectedAccountId, datePreset, timeRange, showActiveOnly);
-    if (res.success) setAuditResults(res.data);
+    if (res.success && res.data) setAuditResults(res.data);
     else toast.error(res.error);
     setLoading(false);
   }
@@ -142,7 +142,7 @@ export default function Home() {
 
     const [tempStart, setTempStart] = useState(startDate || '');
     const [tempEnd, setTempEnd] = useState(endDate || '');
-    const [tempPreset, setTempPreset] = useState(datePreset || 'last_30d');
+    const [tempPreset, setTempPreset] = useState<string | null>(datePreset || 'last_30d');
 
     const handleApply = () => {
       if (tempPreset) {
@@ -208,13 +208,13 @@ export default function Home() {
 
     return (
       <Dialog>
-        <DialogTrigger asChild>
+        <DialogTrigger render={
           <div className="flex items-center gap-3 px-6 py-2 bg-[#121212] border border-[#1f1f1f] rounded-full text-[10px] font-bold uppercase tracking-widest text-[#555] hover:text-white transition-all group cursor-pointer">
             <Bell className="w-3.5 h-3.5 group-hover:text-primary transition-colors" />
             <span>{formatDateDisplay()}</span>
             <ChevronDown className="w-3.5 h-3.5" />
           </div>
-        </DialogTrigger>
+        } />
         <DialogContent className="bg-[#0c0c0c] border-[#1f1f1f] text-[#e5e5e5] rounded-3xl shadow-2xl sm:max-w-5xl w-full p-0 overflow-hidden flex h-[600px]">
           {/* Sidebar Presets */}
           <div className="w-64 border-r border-[#1f1f1f] bg-[#080808] overflow-y-auto custom-scrollbar">
@@ -465,11 +465,11 @@ export default function Home() {
         <div className="flex items-center gap-6">
            <div className="flex items-center gap-4">
               <Dialog>
-                <DialogTrigger asChild>
+                <DialogTrigger render={
                   <button className="flex items-center gap-2 px-4 py-2 bg-[#121212] border border-[#1f1f1f] rounded-full text-[10px] font-bold uppercase tracking-widest text-[#555] hover:text-white transition-all">
                     <Columns className="w-3.5 h-3.5" /> Colunas
                   </button>
-                </DialogTrigger>
+                } />
                 <DialogContent className="bg-[#0c0c0c] border-[#1f1f1f] text-[#e5e5e5] rounded-3xl shadow-2xl sm:max-w-6xl w-full max-h-[85vh] overflow-hidden flex flex-col p-0">
                   <div className="px-8 py-6 border-b border-[#1f1f1f] flex items-center justify-between bg-[#0c0c0c]">
                     <div>
@@ -530,7 +530,7 @@ export default function Home() {
               </Dialog>
 
               <Dialog>
-                <DialogTrigger asChild><button className="text-[#333] hover:text-primary transition-colors cursor-pointer"><SettingsIcon className="w-4 h-4" /></button></DialogTrigger>
+                <DialogTrigger render={<button className="text-[#333] hover:text-primary transition-colors cursor-pointer"><SettingsIcon className="w-4 h-4" /></button>} />
                 <DialogContent className="bg-[#111111] border-[#1f1f1f] text-[#e5e5e5] rounded-2xl max-w-xl">
                   <DialogHeader><DialogTitle className="text-primary uppercase text-[10px] font-bold">Estação Setup</DialogTitle></DialogHeader>
                   <div className="py-6 space-y-6">

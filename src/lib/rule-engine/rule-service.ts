@@ -64,6 +64,7 @@ export interface Metrics {
   insta_followers?: number;
   post_engagement?: number;
   cost_per_engagement?: number;
+  cost_per_post_engagement?: number;
   messaging_starts?: number;
   cost_per_messaging_start?: number;
   new_messaging_contacts?: number;
@@ -76,6 +77,15 @@ export interface Metrics {
   initiate_checkout?: number;
   delivery_status?: string;
   learning_stage?: string;
+  result_rate?: number;
+  result_value?: number;
+  video_p2s_continuous_unique?: number;
+  cpc_all?: number;
+  ctr_link_unique?: number;
+  cost_per_like?: number;
+  page_engagement?: number;
+  cost_per_page_engagement?: number;
+  messaging_returns?: number;
 }
 
 export interface EnrichedCampaign {
@@ -101,8 +111,8 @@ export interface EnrichedAd {
 export class RuleEngineService {
   processAuditTree(tree: any[], targetCpl?: number) {
     const enrichedCampaigns = tree.map(campaign => this.processCampaign(campaign, targetCpl));
-    const totalSpend = enrichedCampaigns.reduce((sum, c) => sum + c.metrics.spend, 0);
-    const totalResults = enrichedCampaigns.reduce((sum, c) => sum + c.metrics.totalResults, 0);
+    const totalSpend = enrichedCampaigns.reduce((sum: number, c: EnrichedCampaign) => sum + c.metrics.spend, 0);
+    const totalResults = enrichedCampaigns.reduce((sum: number, c: EnrichedCampaign) => sum + c.metrics.totalResults, 0);
     const avgCpl = totalResults > 0 ? totalSpend / totalResults : 0;
     return { results: enrichedCampaigns, baseline: { avgCpl } };
   }
@@ -112,8 +122,8 @@ export class RuleEngineService {
     const metrics = this.calculateMetrics(campaign.insights?.data?.[0], campaign.objective);
     
     metrics.delivery_status = campaign.effective_status;
-    metrics.v25 = enrichedAdSets.reduce((sum, as) => sum + as.metrics.v25, 0);
-    metrics.thruplays = enrichedAdSets.reduce((sum, as) => sum + as.metrics.thruplays, 0);
+    metrics.v25 = enrichedAdSets.reduce((sum: number, as: EnrichedAdSet) => sum + as.metrics.v25, 0);
+    metrics.thruplays = enrichedAdSets.reduce((sum: number, as: EnrichedAdSet) => sum + as.metrics.thruplays, 0);
     metrics.hookRate = metrics.impressions > 0 ? (metrics.v25 / metrics.impressions) * 100 : 0;
     metrics.holdRate = metrics.v25 > 0 ? (metrics.thruplays / metrics.v25) * 100 : 0;
 
@@ -127,8 +137,8 @@ export class RuleEngineService {
     
     metrics.delivery_status = adSet.effective_status;
     metrics.learning_stage = adSet.learning_stage;
-    metrics.v25 = enrichedAds.reduce((sum, a) => sum + a.metrics.v25, 0);
-    metrics.thruplays = enrichedAds.reduce((sum, a) => sum + a.metrics.thruplays, 0);
+    metrics.v25 = enrichedAds.reduce((sum: number, a: EnrichedAd) => sum + a.metrics.v25, 0);
+    metrics.thruplays = enrichedAds.reduce((sum: number, a: EnrichedAd) => sum + a.metrics.thruplays, 0);
     metrics.hookRate = metrics.impressions > 0 ? (metrics.v25 / metrics.impressions) * 100 : 0;
     metrics.holdRate = metrics.v25 > 0 ? (metrics.thruplays / metrics.v25) * 100 : 0;
 
