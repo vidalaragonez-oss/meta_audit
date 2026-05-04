@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Zap, Database, Download, Settings as SettingsIcon, ChevronRight, Check, User, Bell, Search, ChevronDown, Columns, Star } from 'lucide-react';
+import { Loader2, Zap, Database, Download, Settings as SettingsIcon, ChevronRight, Check, User, Bell, Search, ChevronDown, Columns, Star, Copy } from 'lucide-react';
 import { AppSettings, AVAILABLE_COLUMNS, DEFAULT_COLUMNS } from '@/lib/db/types';
 
 const PRESETS = [
@@ -54,6 +54,8 @@ export default function Home() {
   const [accountSearch, setAccountSearch] = useState('');
   const [expandedCampaigns, setExpandedCampaigns] = useState<string[]>([]);
   const [expandedAdSets, setExpandedAdSets] = useState<string[]>([]);
+  const [showDumpDialog, setShowDumpDialog] = useState(false);
+  const [dumpContent, setDumpContent] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
@@ -435,13 +437,13 @@ export default function Home() {
       md += `\n---\n`;
     });
 
-    const blob = new Blob([md], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dump-forense-total-${selectedAccountId}.txt`;
-    a.click();
-    toast.success('DUMP FORENSE TOTAL GERADO PARA IA');
+    setDumpContent(md);
+    setShowDumpDialog(true);
+  };
+
+  const handleCopyDump = () => {
+    navigator.clipboard.writeText(dumpContent);
+    toast.success('DUMP COPIADO COM SUCESSO');
   };
 
   const isAllSelected = auditResults && auditResults.length > 0 && selectedCampaignIds.length === auditResults.length;
@@ -543,6 +545,29 @@ export default function Home() {
                   <button onClick={handleSaveSettings} className="w-full bg-primary text-[#0c0c0c] font-bold py-4 rounded-xl text-xs uppercase tracking-widest">Salvar</button>
                 </DialogContent>
               </Dialog>
+
+              <Dialog open={showDumpDialog} onOpenChange={setShowDumpDialog}>
+                <DialogContent className="bg-[#0c0c0c] border-[#1f1f1f] text-[#e5e5e5] rounded-3xl shadow-2xl sm:max-w-4xl w-full max-h-[85vh] flex flex-col p-0 overflow-hidden">
+                  <div className="px-8 py-6 border-b border-[#1f1f1f] flex items-center justify-between bg-[#080808]">
+                    <div>
+                      <DialogTitle className="text-primary uppercase text-xs tracking-[0.2em] font-black">Dump Forense Total</DialogTitle>
+                      <p className="text-[10px] text-[#555] font-bold uppercase tracking-widest mt-1">Pronto para ser processado por IA</p>
+                    </div>
+                    <button 
+                      onClick={handleCopyDump}
+                      className="flex items-center gap-2 px-6 py-2.5 bg-primary text-[#0c0c0c] rounded-full text-[10px] font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-primary/20"
+                    >
+                      <Copy className="w-3.5 h-3.5" /> Copiar para IA
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-[#090909]">
+                    <pre className="text-[11px] font-mono leading-relaxed text-[#888] whitespace-pre-wrap break-words selection:bg-primary/20 selection:text-primary">
+                      {dumpContent}
+                    </pre>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
               <div className="flex items-center gap-3 bg-[#161616] pr-4 pl-1.5 py-1.5 rounded-full border border-[#1f1f1f]"><div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary"><User className="w-3.5 h-3.5" /></div><span className="text-[10px] font-bold text-white uppercase tracking-tighter">Aragonez Vidal</span></div>
            </div>
         </div>
